@@ -10,6 +10,13 @@ struct STM_UART_INFO : public UART_INFO {
 	STM_UART_INFO(USART_TypeDef &puart) : huart(puart)
 	{
 	}
+
+	STM_UART_INFO(USART_TypeDef &puart , UART_OPTS * inopts ) : huart(puart)
+	{
+		opts = inopts;
+	}
+
+
 	USART_TypeDef &huart;
 
 	unsigned char *txbuff = nullptr;
@@ -126,11 +133,6 @@ struct STM_UART_INFO : public UART_INFO {
 		return txpoint;
 	}
 
-	virtual int open(int speed) final
-	{
-		return 0;
-	}
-
 	void usart_handle()
 	{
 		if (USART_GetITStatus(&huart, USART_IT_RXNE) != RESET) {
@@ -187,7 +189,12 @@ STM_UART_INFO stmuart4(*UART4);
 
 STM_UART_INFO stmuart3(*USART3);
 STM_UART_INFO stmuart2(*USART2);
-STM_UART_INFO stmuart1(*USART1);
+int uart1_init(unsigned int bound);
+static struct UART_OPTS u1opts = {
+	.setspeed = uart1_init,
+};
+
+STM_UART_INFO stmuart1(*USART1, &u1opts);
 
 #if MAX_UART_INDEX >= 5
 extern "C" void UART5_IRQHandler(void)

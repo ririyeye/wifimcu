@@ -19,8 +19,12 @@ struct UART_HANDLE {
 	}
 };
 
+struct UART_OPTS{
+	int (*setspeed)(unsigned int speed);
+};
+
 struct UART_INFO {
-	virtual int open(int speed) = 0;
+	UART_OPTS *opts;
 
 	virtual int send(unsigned char *buff, unsigned int num) = 0;
 	virtual int rece(unsigned char *buff, unsigned int num) = 0;

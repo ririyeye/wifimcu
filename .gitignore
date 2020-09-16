@@ -1,5 +1,7 @@
 OBJ/
 USER/startup_stm32f10x_md.lst
 *.map
-.uvopt
-.uvoptx
+*.uvopt
+*.uvoptx
+*.uvguix*
+jLinkLog.txt
