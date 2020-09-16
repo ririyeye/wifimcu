@@ -2,7 +2,7 @@
 #include "stm32f10x.h"
 #include "cmsis_os2.h"
 #include "stm32f10x_usart.h"
-#if 0
+#if MAX_UART_INDEX >= 5
 void uart5_init(unsigned int bound)
 {
 	//初始化IO 串口5
@@ -61,8 +61,7 @@ void uart5_init(unsigned int bound)
 }
 #endif
 
-
-#if 0
+#if MAX_UART_INDEX >= 4
 void uart4_init(unsigned int bound)
 {
 	//初始化IO 串口4
@@ -264,3 +263,4 @@ void uart1_init(unsigned int bound)
 
 	USART_Cmd(USART1, ENABLE); //使能串口
 }
+

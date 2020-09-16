@@ -46,6 +46,10 @@ struct UART_INFO {
 };
 
 UART_INFO *get_myuart(int index);
+#define MAX_UART_INDEX (3)
+
+
+
 
 #ifdef __cplusplus
 }

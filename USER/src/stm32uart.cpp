@@ -177,23 +177,30 @@ struct STM_UART_INFO : public UART_INFO {
 /*
 * link to hardware
 */
-
+#if MAX_UART_INDEX >= 5
 STM_UART_INFO stmuart5(*UART5);
+#endif
+
+#if MAX_UART_INDEX >= 4
 STM_UART_INFO stmuart4(*UART4);
+#endif
+
 STM_UART_INFO stmuart3(*USART3);
 STM_UART_INFO stmuart2(*USART2);
 STM_UART_INFO stmuart1(*USART1);
 
+#if MAX_UART_INDEX >= 5
 extern "C" void UART5_IRQHandler(void)
 {
 	stmuart5.usart_handle();
 }
-
+#endif
+#if MAX_UART_INDEX >= 4
 extern "C" void UART4_IRQHandler(void)
 {
 	stmuart4.usart_handle();
 }
-
+#endif
 extern "C" void USART3_IRQHandler(void)
 {
 	stmuart3.usart_handle();
@@ -218,8 +225,12 @@ static uart_connect cons[] = {
 	{ 1, &stmuart1 }, //绑定串口1
 	{ 2, &stmuart2 }, //绑定串口2
 	{ 3, &stmuart3 }, //绑定串口3
+#if MAX_UART_INDEX >= 4
 	{ 4, &stmuart4 }, //绑定串口4
+#endif
+#if MAX_UART_INDEX >= 5
 	{ 5, &stmuart5 }, //绑定串口5
+#endif
 };
 
 UART_INFO *get_myuart(int index)
