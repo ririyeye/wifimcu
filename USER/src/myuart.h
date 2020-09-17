@@ -26,8 +26,8 @@ struct UART_OPTS{
 struct UART_INFO {
 	UART_OPTS *opts;
 
-	virtual int send(unsigned char *buff, unsigned int num) = 0;
-	virtual int rece(unsigned char *buff, unsigned int num) = 0;
+	virtual int send(const void *buff, unsigned int num) = 0;
+	virtual int rece(void *buff, unsigned int num) = 0;
 	virtual int wait_rece(unsigned int headtick, unsigned int tailtick) = 0;
 	virtual int wait_send_end() = 0;
 

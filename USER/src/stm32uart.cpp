@@ -28,11 +28,11 @@ struct STM_UART_INFO : public UART_INFO {
 	osThreadId_t Thread_rcv = nullptr;
 #define WAIT_RX (1 << 0)
 #define WAIT_TX (1 << 1)
-	virtual int send(unsigned char *buff, unsigned int num) final
+	virtual int send(const void *buff, unsigned int num) final
 	{
 		if (buff && (num > 0)) {
 			txenable = 1;
-			txbuff = buff;
+			txbuff = (unsigned char *)buff;
 			txpoint = 0;
 			txmax = num;
 
@@ -47,11 +47,11 @@ struct STM_UART_INFO : public UART_INFO {
 	int rxpoint = 0;
 	int rxmax = 0;
 
-	virtual int rece(unsigned char *buff, unsigned int num) final
+	virtual int rece(void *buff, unsigned int num) final
 	{
 		if (buff && (num > 0)) {
 			rxenable = 1;
-			rxbuff = buff;
+			rxbuff = (unsigned char *)buff;
 			rxpoint = 0;
 			rxmax = num;
 
