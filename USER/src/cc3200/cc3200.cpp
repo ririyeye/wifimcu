@@ -9,6 +9,7 @@ template <typename T, size_t N> inline size_t CountOf(T (&arr)[N])
 	return N;
 }
 
+
 static uint64_t thread_main_stk_1[64];
 
 void cc3200_main(void *argument);
@@ -43,8 +44,6 @@ void init_cc3200_gpio()
 	GPIO_WriteBit(GPIOA, GPIO_Pin_12, Bit_SET);
 }
 
-
-
 int checkATmod(char *rxbuff, int size)
 {
 	if (strstr(rxbuff, "Entered AT")) {
@@ -57,7 +56,7 @@ int checkATmod(char *rxbuff, int size)
 	return -1;
 }
 
-int enter_at_mode(UART_INFO *info,int * speedgrp,int speedcnt)
+int enter_at_mode(UART_INFO *info, int *speedgrp, int speedcnt)
 {
 	int txnum = sprintf((char *)txbuff, "+++");
 
@@ -247,7 +246,5 @@ void cc3200_main(void *argument)
 	pwifi->opts->setspeed(speeds[CountOf(speeds) - 1]);
 
 	while (true) {
-		
-
 	}
 }
