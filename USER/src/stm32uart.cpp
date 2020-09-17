@@ -4,18 +4,15 @@
 #include "cmsis_os2.h"
 #include "stm32f10x_usart.h"
 
-
-
 struct STM_UART_INFO : public UART_INFO {
 	STM_UART_INFO(USART_TypeDef &puart) : huart(puart)
 	{
 	}
 
-	STM_UART_INFO(USART_TypeDef &puart , UART_OPTS * inopts ) : huart(puart)
+	STM_UART_INFO(USART_TypeDef &puart, UART_OPTS *inopts) : huart(puart)
 	{
 		opts = inopts;
 	}
-
 
 	USART_TypeDef &huart;
 
@@ -179,6 +176,12 @@ struct STM_UART_INFO : public UART_INFO {
 /*
 * link to hardware
 */
+int uart1_init(unsigned int bound);
+int uart2_init(unsigned int bound);
+int uart3_init(unsigned int bound);
+int uart4_init(unsigned int bound);
+int uart5_init(unsigned int bound);
+
 #if MAX_UART_INDEX >= 5
 STM_UART_INFO stmuart5(*UART5);
 #endif
@@ -187,9 +190,12 @@ STM_UART_INFO stmuart5(*UART5);
 STM_UART_INFO stmuart4(*UART4);
 #endif
 
-STM_UART_INFO stmuart3(*USART3);
+static struct UART_OPTS u3opts = {
+	.setspeed = uart3_init,
+};
+STM_UART_INFO stmuart3(*USART3, &u3opts);
+
 STM_UART_INFO stmuart2(*USART2);
-int uart1_init(unsigned int bound);
 static struct UART_OPTS u1opts = {
 	.setspeed = uart1_init,
 };

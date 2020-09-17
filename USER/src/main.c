@@ -6,25 +6,19 @@
 #include <sbwt.h>
 #include "DMT.h"
 #include "ebyte_lora.h"
+#include "cc3200/cc3200.h"
+
 int uart1_init(unsigned int bound);
 int uart2_init(unsigned int bound);
 int uart3_init(unsigned int bound);
 
 
-void init_sbwt();
-void init_display();
-void init_lora();
-void init_sbwt_modbus();
-void init_cc3200();
+void init_JD(void);
 
 void app_main(void *argument)
 {
-	// init_sbwt();
-	// init_display();
-	// init_ebyte_lora();
-	// init_sbwt_modbus();
 	init_cc3200();
-
+	init_JD();
 	while (true) {
 		osDelay(1000);
 	}
@@ -36,7 +30,7 @@ int main(void)
 
 	uart1_init(115200);
 	uart2_init(115200);
-	uart3_init(19200);
+	uart3_init(230400);
 
 	int osret = osKernelInitialize();
 
