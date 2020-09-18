@@ -8,7 +8,6 @@
 #include "cc3200/cc3200.h"
 #include "wifi/wifi_par.h"
 
-
 static uint64_t thread_main_stk_1[64];
 
 void JD_main(void *argument);
@@ -67,11 +66,11 @@ static unsigned char crc_check(unsigned int a, unsigned char *Buff, unsigned int
 		return 0;
 }
 
-void mkSndBuf(unsigned char JDSndBuffer[], FRAME_DATA * rec,int downflg)
+void mkSndBuf(unsigned char JDSndBuffer[], FRAME_DATA *rec, int downflg)
 {
 	static unsigned char thissndseq;
-	
-	const auto * pesp = getWIFI_PAR();
+
+	const auto *pesp = getWIFI_PAR();
 	JDSndBuffer[0] = 0xaa;
 	JDSndBuffer[1] = 0xaa;
 	JDSndBuffer[2] = rec->code;
@@ -80,8 +79,7 @@ void mkSndBuf(unsigned char JDSndBuffer[], FRAME_DATA * rec,int downflg)
 	if (downflg) {
 		memcpy(&JDSndBuffer[4], pesp->thisdev, 4);
 		memcpy(&JDSndBuffer[8], getaimdev(), 4);
-	}
-	else {
+	} else {
 		memcpy(&JDSndBuffer[4], getaimdev(), 4);
 		memcpy(&JDSndBuffer[8], pesp->thisdev, 4);
 	}
@@ -100,15 +98,14 @@ void mkSndBuf(unsigned char JDSndBuffer[], FRAME_DATA * rec,int downflg)
 	JDSndBuffer[rec->len - 1] = crc >> 8;
 }
 
-
-void mk_REC_DATA(unsigned char * data, int len, UART_INFO * info, FRAME_DATA * rec)
+void mk_REC_DATA(unsigned char *data, int len, UART_INFO *info, FRAME_DATA *rec)
 {
 	if (!rec) {
 		return;
 	}
 
 	rec->code = data[2];
-	rec->seq = data[3];	
+	rec->seq = data[3];
 	memcpy(rec->dst_dev, data + 4, 4);
 	memcpy(rec->src_dev, data + 8, 4);
 
@@ -123,9 +120,9 @@ void mk_REC_DATA(unsigned char * data, int len, UART_INFO * info, FRAME_DATA * r
 	rec->framedestroy = 0;
 }
 
-void sendREC(FRAME_DATA * rec)
+void sendREC(FRAME_DATA *rec)
 {
-	UART_INFO * psta = (UART_INFO *)rec->devInfo;
+	UART_INFO *psta = (UART_INFO *)rec->devInfo;
 
 	if (!psta) {
 		return;
@@ -139,6 +136,7 @@ void sendREC(FRAME_DATA * rec)
 
 	psta->wait_send_end();
 	psta->send(jd_txbuff, rec->len);
+	psta->wait_send_end();
 }
 
 int JD_Communication_data(unsigned char *rxbuf, int num, PROTOCOL_DAT *ret)
@@ -169,19 +167,15 @@ void JD_main(void *argument)
 	pjd->opts->setspeed(230400);
 	while (true) {
 		pjd->rece(jd_rxbuff, sizeof(jd_rxbuff));
-		pjd->wait_rece(100, 10);
+		pjd->wait_rece(100, 3);
 
 		if (pjd->GetRxNum()) {
 			PROTOCOL_DAT ret;
 
 			if (0 == JD_Communication_data(jd_rxbuff, pjd->GetRxNum(), &ret)) {
 				FRAME_DATA rec;
-				mk_REC_DATA(ret.datestart, ret.datelen, pjd,&rec);
-				if (0 == pro_REC_DATA(&rec)) {
-					//resetcom(sta);
-				}
-			} else {
-				//resetcom(sta);
+				mk_REC_DATA(ret.datestart, ret.datelen, pjd, &rec);
+				pro_REC_DATA(&rec);
 			}
 		}
 	}

@@ -185,6 +185,21 @@ static int setmac(FRAME_DATA *rec)
 	return 1;
 }
 
+//key status
+static int getKeyStatus(FRAME_DATA * rec)
+{
+	WIFI_ParaTypeDef * pesp = getWIFI_PAR();
+	rec->data = tmpbuff;
+	unsigned char * datpos = &rec->data[1];
+	//dummy key
+	datpos[0] = 0;
+	datpos[1] = 0;
+
+	rec->len = MIN_PACK_SZ + 1 + 2;
+	return 1;
+}
+
+
 
 const PROFUN ctrlgrp[] = {
 	{ 0x40, set_id },
@@ -199,7 +214,8 @@ const PROFUN ctrlgrp[] = {
 	{ 0x4a, cleanBuff },
 
 	{ 0x4b, setmac },
-
+//debug key
+	{0x4C,getKeyStatus},
 };
 
 int ctrl_pro(FRAME_DATA *rec)
