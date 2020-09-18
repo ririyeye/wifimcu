@@ -1,10 +1,11 @@
 
 #include "jd/jdframe.h"
+#include "myuart.h"
 #include <string.h>
 
 //#include "ESP8266WIFI.h"
 
-int pro_REC_DATA(FRAME_DATA * rec)
+int pro_REC_DATA(UART_INFO *pinfo, FRAME_DATA *rec)
 {
 	char ret = 0;
 
@@ -32,21 +33,7 @@ int pro_REC_DATA(FRAME_DATA * rec)
 	}
 	if (ret) {
 		rec->code |= 0x80;
-		sendREC(rec);
+		sendREC(pinfo, rec);
 	}
 	return ret;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

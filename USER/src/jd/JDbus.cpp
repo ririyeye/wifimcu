@@ -115,15 +115,11 @@ void mk_REC_DATA(unsigned char *data, int len, UART_INFO *info, FRAME_DATA *rec)
 
 	rec->crc = data[len - 2] | data[len - 1] << 8;
 
-	rec->devInfo = info;
-
 	rec->framedestroy = 0;
 }
 
-void sendREC(FRAME_DATA *rec)
+void sendREC(UART_INFO *psta, FRAME_DATA *rec)
 {
-	UART_INFO *psta = (UART_INFO *)rec->devInfo;
-
 	if (!psta) {
 		return;
 	}
@@ -175,7 +171,7 @@ void JD_main(void *argument)
 			if (0 == JD_Communication_data(jd_rxbuff, pjd->GetRxNum(), &ret)) {
 				FRAME_DATA rec;
 				mk_REC_DATA(ret.datestart, ret.datelen, pjd, &rec);
-				pro_REC_DATA(&rec);
+				pro_REC_DATA(pjd, &rec);
 			}
 		}
 	}

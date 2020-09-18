@@ -354,7 +354,7 @@ int SendTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd)
 	return 0;
 }
 
-void mk_REC_DATA(UART_INFO *pwifi, unsigned char *data, int len, FRAME_DATA *rec)
+void mk_REC_DATA(unsigned char *data, int len, FRAME_DATA *rec)
 {
 	if (!rec) {
 		return;
@@ -370,8 +370,6 @@ void mk_REC_DATA(UART_INFO *pwifi, unsigned char *data, int len, FRAME_DATA *rec
 	rec->data = data + 16;
 
 	rec->crc = data[len - 2] | data[len - 1] << 8;
-
-	rec->devInfo = pwifi;
 
 	rec->framedestroy = 0;
 }
@@ -460,7 +458,7 @@ void cc3200_main(void *argument)
 				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
 					//检测到JD返回帧
 					failtim = 0;
-					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
+					mk_REC_DATA(dat.datestart, dat.datelen, &fdata);
 					if (fdata.len == (MIN_PACK_SZ + 8)) {
 						//检查时间
 						pesp->year = fdata.data[0];
@@ -482,7 +480,7 @@ void cc3200_main(void *argument)
 				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
 					//检测到JD返回帧
 					failtim = 0;
-					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
+					mk_REC_DATA(dat.datestart, dat.datelen, &fdata);
 					if (fdata.len == (MIN_PACK_SZ + 4)) {
 						//检查编号
 						pesp->message_num[0] =
@@ -503,7 +501,7 @@ void cc3200_main(void *argument)
 				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
 					//检测到JD返回帧
 					failtim = 0;
-					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
+					mk_REC_DATA(dat.datestart, dat.datelen, &fdata);
 					if (fdata.len > (MIN_PACK_SZ)) {
 						//复制数据
 						memcpy(&pesp->buffer[0].fd, &fdata,
@@ -551,8 +549,8 @@ void cc3200_main(void *argument)
 								       &dat)) {
 						if (0 == JD_Communication_data(dat.datestart,
 									       dat.datelen, &dat)) {
-							mk_REC_DATA(pwifi, dat.datestart,
-								    dat.datelen, &fdata);
+							mk_REC_DATA(dat.datestart, dat.datelen,
+								    &fdata);
 
 							if (fdata.frame_index ==
 							    pbuffer->fd.frame_index) {
@@ -573,7 +571,7 @@ void cc3200_main(void *argument)
 				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
 					//检测到JD返回帧
 					failtim = 0;
-					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
+					mk_REC_DATA(dat.datestart, dat.datelen, &fdata);
 					if (fdata.len > (MIN_PACK_SZ)) {
 						//复制数据
 						memcpy(&pesp->buffer[0].fd, &fdata,
@@ -605,8 +603,7 @@ void cc3200_main(void *argument)
 								       &dat)) {
 						//检测到JD返回帧
 						failtim = 0;
-						mk_REC_DATA(pwifi, dat.datestart, dat.datelen,
-							    &fdata);
+						mk_REC_DATA(dat.datestart, dat.datelen, &fdata);
 						sprintf(buff,
 							"code = 5,index = %d,msgid = %d,subid=%d\n",
 							fdata.frame_index,

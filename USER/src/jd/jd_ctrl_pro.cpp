@@ -5,12 +5,10 @@
 #include "cc3200/cc3200.h"
 #include "wifi/wifi_par.h"
 
-
 typedef struct {
 	int id;
 	int (*pro)(FRAME_DATA *rec);
 } PROFUN;
-extern "C" void sendREC(FRAME_DATA *rec);
 
 const uint16_t c0[][2] = {
 	{ WIFI_SSID_0, WIFI_PWD_0 },
@@ -168,7 +166,6 @@ static int cleanBuff(FRAME_DATA *rec)
 	int setlen = rec->len - MIN_PACK_SZ - 1;
 	WIFI_ParaTypeDef *pesp = getWIFI_PAR();
 	if (setlen == 0) {
-
 		pesp->workStatus = STA_NULL;
 	}
 	return 1;
@@ -186,11 +183,11 @@ static int setmac(FRAME_DATA *rec)
 }
 
 //key status
-static int getKeyStatus(FRAME_DATA * rec)
+static int getKeyStatus(FRAME_DATA *rec)
 {
-	WIFI_ParaTypeDef * pesp = getWIFI_PAR();
+	WIFI_ParaTypeDef *pesp = getWIFI_PAR();
 	rec->data = tmpbuff;
-	unsigned char * datpos = &rec->data[1];
+	unsigned char *datpos = &rec->data[1];
 	//dummy key
 	datpos[0] = 0;
 	datpos[1] = 0;
@@ -198,8 +195,6 @@ static int getKeyStatus(FRAME_DATA * rec)
 	rec->len = MIN_PACK_SZ + 1 + 2;
 	return 1;
 }
-
-
 
 const PROFUN ctrlgrp[] = {
 	{ 0x40, set_id },
@@ -214,8 +209,8 @@ const PROFUN ctrlgrp[] = {
 	{ 0x4a, cleanBuff },
 
 	{ 0x4b, setmac },
-//debug key
-	{0x4C,getKeyStatus},
+	//debug key
+	{ 0x4C, getKeyStatus },
 };
 
 int ctrl_pro(FRAME_DATA *rec)
@@ -224,7 +219,6 @@ int ctrl_pro(FRAME_DATA *rec)
 		if (p.id == rec->data[0]) {
 			if (p.pro(rec)) {
 				rec->data[0] = p.id | 0x80;
-				sendREC(rec);
 				return 1;
 			}
 			return 0;
