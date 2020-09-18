@@ -7,6 +7,7 @@
 #include "DMT.h"
 #include "ebyte_lora.h"
 #include "cc3200/cc3200.h"
+#include "wifi/wifi_par.h"
 
 int uart1_init(unsigned int bound);
 int uart2_init(unsigned int bound);
@@ -19,6 +20,8 @@ void app_main(void *argument)
 {
 	init_cc3200();
 	init_JD();
+	timupdate_init();
+
 	while (true) {
 		osDelay(1000);
 	}

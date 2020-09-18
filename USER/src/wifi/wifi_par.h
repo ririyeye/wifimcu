@@ -77,7 +77,6 @@ typedef enum {
 
 #define BUFFER_MAX_INDEX (1)
 typedef struct {
-	unsigned int Start_Delayms_Cnt;
 	unsigned char WIFI_Error_retry_Cnt; //异常重试计数
 
 	unsigned char workStatus;
@@ -126,9 +125,11 @@ typedef int (search_meth)(databuffer *, void * pri);
 WIFI_ParaTypeDef *getWIFI_PAR(void);
 void wificleanBuffer(WIFI_ParaTypeDef *pesp);
 databuffer *wifiSearchMethBuffer(WIFI_ParaTypeDef *pesp, search_meth method, void *pri);
+databuffer *wifiSearchMinUploadIndexBuffer(WIFI_ParaTypeDef *pesp);
 databuffer *wifiGetBuffer(WIFI_ParaTypeDef *pesp);
 const char *getaimdev(void);
 
+void timupdate_init(void);
 #ifdef __cplusplus
 }
 #endif

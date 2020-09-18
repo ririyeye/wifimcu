@@ -231,9 +231,9 @@ int set_uart_speed(UART_INFO *info, int speed)
 	return -1;
 }
 
-int chkNeedConnect(WIFI_ParaTypeDef * pesp)
+int chkNeedConnect(WIFI_ParaTypeDef *pesp)
 {
-	const  uint16_t connectgrp[] = {
+	const uint16_t connectgrp[] = {
 		WIFI_IP,
 		WIFI_REMOTE_IP_PORT,
 		WIFI_CONNECT,
@@ -241,16 +241,15 @@ int chkNeedConnect(WIFI_ParaTypeDef * pesp)
 
 	for (int i = 0; i < sizeof(connectgrp) / sizeof(uint16_t); i++) {
 		if (connectgrp[i] & pesp->command_sta) {
-
 		} else {
 			return -1;
 		}
 	}
 
-	const  uint16_t c0[][2] = {
-		{WIFI_SSID_0,WIFI_PWD_0},
-		{WIFI_SSID_1,WIFI_PWD_1},
-		{WIFI_SSID_2,WIFI_PWD_2},
+	const uint16_t c0[][2] = {
+		{ WIFI_SSID_0, WIFI_PWD_0 },
+		{ WIFI_SSID_1, WIFI_PWD_1 },
+		{ WIFI_SSID_2, WIFI_PWD_2 },
 	};
 
 	for (int i = 0; i < 3; i++) {
@@ -263,11 +262,11 @@ int chkNeedConnect(WIFI_ParaTypeDef * pesp)
 static unsigned char tmpbuff[128];
 static unsigned char seq = 0;
 
-void mkProtocolTim(FRAME_DATA * pfd)
+void mkProtocolTim(FRAME_DATA *pfd)
 {
 	pfd->code = 0x01;
 	pfd->seq = seq++;
-	WIFI_ParaTypeDef * pesp = getWIFI_PAR();
+	WIFI_ParaTypeDef *pesp = getWIFI_PAR();
 	memcpy(pfd->src_dev, pesp->thisdev, 4);
 	memcpy(pfd->dst_dev, getaimdev(), 4);
 	pfd->frame_index = 0;
@@ -276,9 +275,9 @@ void mkProtocolTim(FRAME_DATA * pfd)
 	pfd->framedestroy = 0;
 }
 
-void mkProtocolGetNum(FRAME_DATA * pfd)
+void mkProtocolGetNum(FRAME_DATA *pfd)
 {
-	WIFI_ParaTypeDef * pesp = getWIFI_PAR();
+	WIFI_ParaTypeDef *pesp = getWIFI_PAR();
 	pfd->code = 0x02;
 	pfd->seq = seq++;
 	memcpy(pfd->src_dev, pesp->thisdev, 4);
@@ -289,9 +288,9 @@ void mkProtocolGetNum(FRAME_DATA * pfd)
 	pfd->framedestroy = 0;
 }
 
-void mkAcquireIndex(FRAME_DATA * pfd, uint16_t  indexID)
+void mkAcquireIndex(FRAME_DATA *pfd, uint16_t indexID)
 {
-	WIFI_ParaTypeDef * pesp = getWIFI_PAR();
+	WIFI_ParaTypeDef *pesp = getWIFI_PAR();
 	pfd->code = 0x03;
 	pfd->seq = seq++;
 	memcpy(pfd->src_dev, pesp->thisdev, 4);
@@ -304,7 +303,7 @@ void mkAcquireIndex(FRAME_DATA * pfd, uint16_t  indexID)
 	pfd->framedestroy = 0;
 }
 
-void mkSendData(FRAME_DATA * pfd, databuffer * pbuffer)
+void mkSendData(FRAME_DATA *pfd, databuffer *pbuffer)
 {
 	pfd->code = 0x04;
 	memcpy(pfd, &pbuffer->fd, sizeof(FRAME_DATA));
@@ -313,7 +312,7 @@ void mkSendData(FRAME_DATA * pfd, databuffer * pbuffer)
 	pfd->framedestroy = 0;
 }
 
-void mkRecvDataSingle(FRAME_DATA * pfd, databuffer * pbuffer)
+void mkRecvDataSingle(FRAME_DATA *pfd, databuffer *pbuffer)
 {
 	pfd->code = 0x05;
 	memcpy(pfd, &pbuffer->fd, sizeof(FRAME_DATA));
@@ -323,8 +322,8 @@ void mkRecvDataSingle(FRAME_DATA * pfd, databuffer * pbuffer)
 	pfd->framedestroy = 0;
 }
 
-
-void mkRecvDataMulity(FRAME_DATA * pfd, FRAME_DATA *pdummyfd, int index, unsigned char * pdummybuffer, int len)
+void mkRecvDataMulity(FRAME_DATA *pfd, FRAME_DATA *pdummyfd, int index, unsigned char *pdummybuffer,
+		      int len)
 {
 	memcpy(pfd, pdummyfd, sizeof(FRAME_DATA));
 	pfd->seq = seq++;
@@ -335,7 +334,7 @@ void mkRecvDataMulity(FRAME_DATA * pfd, FRAME_DATA *pdummyfd, int index, unsigne
 	pfd->framedestroy = 0;
 }
 
-int exchangeTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd, PROTOCOL_DAT *pdat)
+int exchangeTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd)
 {
 	mkSndBuf(txbuff, pfd, 0);
 	pwifi->send(txbuff, pfd->len);
@@ -345,14 +344,24 @@ int exchangeTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd, PROTOCOL_DAT *pdat)
 	return pwifi->GetRxNum() > 0 ? 0 : -1;
 }
 
-void mk_REC_DATA(UART_INFO * pwifi, unsigned char * data, int len, FRAME_DATA * rec)
+int SendTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd)
+{
+	pwifi->wait_send_end();
+	mkSndBuf(txbuff, pfd, 0);
+	pwifi->send(txbuff, pfd->len);
+	pwifi->wait_send_end();
+	osDelay(20);
+	return 0;
+}
+
+void mk_REC_DATA(UART_INFO *pwifi, unsigned char *data, int len, FRAME_DATA *rec)
 {
 	if (!rec) {
 		return;
 	}
 
 	rec->code = data[2];
-	rec->seq = data[3];	
+	rec->seq = data[3];
 	memcpy(rec->dst_dev, data + 4, 4);
 	memcpy(rec->src_dev, data + 8, 4);
 
@@ -363,10 +372,9 @@ void mk_REC_DATA(UART_INFO * pwifi, unsigned char * data, int len, FRAME_DATA * 
 	rec->crc = data[len - 2] | data[len - 1] << 8;
 
 	rec->devInfo = pwifi;
-	
+
 	rec->framedestroy = 0;
 }
-
 
 int speeds[] = { 115200 * 1, 115200 * 10 };
 int JD_Communication_data(unsigned char *rxbuf, int num, PROTOCOL_DAT *ret);
@@ -404,24 +412,26 @@ void cc3200_main(void *argument)
 
 		{
 			char buff[3][20];
-			sprintf(buff[0], "%d.%d.%d.%d", pesp->WIFI_ip[0], pesp->WIFI_ip[1], pesp->WIFI_ip[2], pesp->WIFI_ip[3]);
-			sprintf(buff[1], "%d.%d.%d.%d", pesp->WIFI_gateway[0], pesp->WIFI_gateway[1], pesp->WIFI_gateway[2], pesp->WIFI_gateway[3]);
-			sprintf(buff[2], "%d.%d.%d.%d", pesp->WIFI_netmask[0], pesp->WIFI_netmask[1], pesp->WIFI_netmask[2], pesp->WIFI_netmask[3]);
+			sprintf(buff[0], "%d.%d.%d.%d", pesp->WIFI_ip[0], pesp->WIFI_ip[1],
+				pesp->WIFI_ip[2], pesp->WIFI_ip[3]);
+			sprintf(buff[1], "%d.%d.%d.%d", pesp->WIFI_gateway[0],
+				pesp->WIFI_gateway[1], pesp->WIFI_gateway[2],
+				pesp->WIFI_gateway[3]);
+			sprintf(buff[2], "%d.%d.%d.%d", pesp->WIFI_netmask[0],
+				pesp->WIFI_netmask[1], pesp->WIFI_netmask[2],
+				pesp->WIFI_netmask[3]);
 			//debug_sndstring(buff);
 			set_fix_ip_port(pwifi, buff[0], buff[2], buff[1]);
 		}
 
 		{
 			char buff[32];
-			sprintf(buff, "%d.%d.%d.%d", pesp->WIFI_remoteip[0], pesp->WIFI_remoteip[1], pesp->WIFI_remoteip[2], pesp->WIFI_remoteip[3]);
+			sprintf(buff, "%d.%d.%d.%d", pesp->WIFI_remoteip[0], pesp->WIFI_remoteip[1],
+				pesp->WIFI_remoteip[2], pesp->WIFI_remoteip[3]);
 			set_server_ip_port(pwifi, buff, pesp->WIFI_tcpport);
-			sprintf(buff, "server %d.%d.%d.%d:%d"
-				, pesp->WIFI_remoteip[0]
-				, pesp->WIFI_remoteip[1]
-				, pesp->WIFI_remoteip[2]
-				, pesp->WIFI_remoteip[3]
-				, pesp->WIFI_tcpport
-			);
+			sprintf(buff, "server %d.%d.%d.%d:%d", pesp->WIFI_remoteip[0],
+				pesp->WIFI_remoteip[1], pesp->WIFI_remoteip[2],
+				pesp->WIFI_remoteip[3], pesp->WIFI_tcpport);
 			//debug_sndstring(buff[0]);
 		}
 
@@ -438,16 +448,16 @@ void cc3200_main(void *argument)
 		cc3200_pwr(1);
 		//wait power on
 		osDelay(2000);
+		char failtim = 0;
 		while (true) {
-			char failtim = 0;
 			FRAME_DATA fdata;
 			PROTOCOL_DAT dat;
 			char buff[64];
 			//对时阶段
 			if (pesp->workStatus == STA_GET_TIM) {
 				mkProtocolTim(&fdata);
-				exchangeTCPdatOnce(pwifi, &fdata, &dat);
-				if (0 == JD_Communication_data(dat.datestart, dat.datelen, &dat)) {
+				if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
+				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
 					//检测到JD返回帧
 					failtim = 0;
 					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
@@ -462,6 +472,164 @@ void cc3200_main(void *argument)
 						pesp->milsec = fdata.data[6] | (fdata.data[7] << 8);
 						pesp->workStatus = STA_GET_TIM_OK;
 						//debug_sndstring("code = 1,get time\n");
+					}
+				}
+			}
+			//编号获取
+			if (pesp->workStatus == STA_GET_NUM) {
+				mkProtocolGetNum(&fdata);
+				if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
+				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
+					//检测到JD返回帧
+					failtim = 0;
+					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
+					if (fdata.len == (MIN_PACK_SZ + 4)) {
+						//检查编号
+						pesp->message_num[0] =
+							fdata.data[0] | (fdata.data[1] << 8);
+						pesp->message_num[1] =
+							fdata.data[2] | (fdata.data[3] << 8);
+						pesp->workStatus = STA_GET_NUM_OK;
+						sprintf(buff, "code = 2,index from %d to %d\n",
+							pesp->message_num[0], pesp->message_num[1]);
+						//debug_sndstring(buff);
+					}
+				}
+			}
+			//信件获取
+			if (pesp->workStatus == STA_ACQUIRE_DATA) {
+				mkAcquireIndex(&fdata, pesp->message_num[0]);
+				if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
+				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
+					//检测到JD返回帧
+					failtim = 0;
+					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
+					if (fdata.len > (MIN_PACK_SZ)) {
+						//复制数据
+						memcpy(&pesp->buffer[0].fd, &fdata,
+						       sizeof(FRAME_DATA));
+						memcpy(pesp->buffer[0].dat, fdata.data,
+						       fdata.len - MIN_PACK_SZ);
+						pesp->buffer[0].flag = BUFFER_ACQUIRE_DATA;
+						pesp->workStatus = STA_ACQUIRE_DATA_OK;
+						if (fdata.len > MIN_PACK_SZ + 2) {
+							sprintf(buff,
+								"code = 3,index = %d,msgid = %d,subid=%d\n",
+								fdata.frame_index,
+								fdata.data[0] |
+									(fdata.data[1] << 8),
+								fdata.data[2]);
+							//debug_sndstring(buff);
+						}
+					}
+				}
+			}
+
+			//数据发送
+			//单帧 不需要返回
+			if (pesp->workStatus == STA_SEND_DATA_SINGLE) {
+				mkSendData(&fdata, &pesp->buffer[0]);
+				SendTCPdatOnce(pwifi, &fdata);
+				pesp->workStatus = STA_SEND_DATA_SINGLE_OK;
+				sprintf(buff, "code = 4,index = %d,msgid = %d,subid=%d\n",
+					fdata.frame_index, fdata.data[0] | (fdata.data[1] << 8),
+					fdata.data[2]);
+				//debug_sndstring(buff);
+			}
+			//多帧发送
+			if (pesp->workStatus == STA_SEND_DATA_MULITY) {
+				databuffer *pbuffer = wifiSearchMinUploadIndexBuffer(pesp);
+				if (pbuffer) {
+					mkSendData(&fdata, pbuffer);
+					sprintf(buff, "code = 4,index = %d,msgid = %d,subid=%d\n",
+						fdata.frame_index,
+						fdata.data[0] | (fdata.data[1] << 8),
+						fdata.data[2]);
+					//debug_sndstring(buff);
+					if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
+					    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(),
+								       &dat)) {
+						if (0 == JD_Communication_data(dat.datestart,
+									       dat.datelen, &dat)) {
+							mk_REC_DATA(pwifi, dat.datestart,
+								    dat.datelen, &fdata);
+
+							if (fdata.frame_index ==
+							    pbuffer->fd.frame_index) {
+								pbuffer->flag = 0;
+							}
+						}
+					}
+				} else {
+					break;
+				}
+			}
+
+			//数据接收
+			//单帧
+			if (pesp->workStatus == STA_REC_DATA_SINGLE) {
+				mkRecvDataSingle(&fdata, &pesp->buffer[0]);
+				if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
+				    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(), &dat)) {
+					//检测到JD返回帧
+					failtim = 0;
+					mk_REC_DATA(pwifi, dat.datestart, dat.datelen, &fdata);
+					if (fdata.len > (MIN_PACK_SZ)) {
+						//复制数据
+						memcpy(&pesp->buffer[0].fd, &fdata,
+						       sizeof(FRAME_DATA));
+						memcpy(pesp->buffer[0].dat, fdata.data,
+						       fdata.len - MIN_PACK_SZ);
+						pesp->buffer[0].flag = BUFFER_DOWNLOAD;
+						pesp->workStatus = STA_REC_DATA_SINGLE_OK;
+						sprintf(buff,
+							"code = 5,index = %d,msgid = %d,subid=%d\n",
+							fdata.frame_index,
+							fdata.data[0] | (fdata.data[1] << 8),
+							fdata.data[2]);
+						//debug_sndstring(buff);
+					}
+				}
+			}
+			//多帧
+			if (pesp->workStatus == STA_REC_DATA_MULITY) {
+				databuffer *pbuff = wifiGetBuffer(pesp);
+				if (pbuff &&
+				    (pesp->auto_buffer_status == AUTO_BUFFER_START_BUFFER)) {
+					mkRecvDataMulity(&fdata, &pesp->dummyfd,
+							 pesp->auto_bufferring_index,
+							 (unsigned char *)pesp->dummyDownloadbuffer,
+							 pesp->dummyDonwloadlen);
+					if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
+					    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(),
+								       &dat)) {
+						//检测到JD返回帧
+						failtim = 0;
+						mk_REC_DATA(pwifi, dat.datestart, dat.datelen,
+							    &fdata);
+						sprintf(buff,
+							"code = 5,index = %d,msgid = %d,subid=%d\n",
+							fdata.frame_index,
+							fdata.data[0] | (fdata.data[1] << 8),
+							fdata.data[2]);
+						//debug_sndstring(buff);
+						if ((fdata.len > MIN_PACK_SZ) &&
+						    (fdata.frame_index ==
+						     pesp->auto_bufferring_index)) {
+							//复制数据
+							memcpy(&pbuff->fd, &fdata,
+							       sizeof(FRAME_DATA));
+							memcpy(pbuff->dat, fdata.data,
+							       fdata.len - MIN_PACK_SZ);
+							pbuff->flag = BUFFER_DOWNLOAD;
+							//开始下一帧缓冲
+							pesp->auto_bufferring_index++;
+						} else if (fdata.len == MIN_PACK_SZ) {
+							//缓冲完成
+							pesp->auto_buffer_status =
+								AUTO_BUFFER_END_BUFFER;
+							pesp->workStatus = STA_REC_DATA_MULITY_OK;
+						}
 					}
 				}
 			}
