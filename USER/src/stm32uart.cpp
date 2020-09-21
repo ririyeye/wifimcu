@@ -23,8 +23,9 @@ struct STM_UART_INFO : public UART_INFO {
 	int rxenable = 0;
 
 	osThreadId_t Thread_rcv = nullptr;
+	osThreadId_t Thread_snd_end = nullptr;
 #define WAIT_RX (1 << 0)
-#define WAIT_TX (1 << 1)
+#define WAIT_TX_END (1 << 1)
 	virtual int send(const void *buff, unsigned int num) final
 	{
 		if (buff && (num > 0)) {
@@ -86,9 +87,11 @@ struct STM_UART_INFO : public UART_INFO {
 
 	virtual int wait_send_end()
 	{
+		Thread_snd_end = osThreadGetId();
 		while (0 != checkTXCPL()) {
-			osDelay(1);
+			osThreadFlagsWait(WAIT_TX_END, 0, 1);
 		}
+		Thread_snd_end = nullptr;
 		return 0;
 	}
 
@@ -132,8 +135,16 @@ struct STM_UART_INFO : public UART_INFO {
 
 	void usart_handle()
 	{
+		if (USART_GetFlagStatus(&huart, USART_FLAG_ORE) != RESET) //清除溢出错误
+		{
+			USART_ClearFlag(&huart, USART_FLAG_ORE);
+			int data = USART_ReceiveData(&huart);//读取接收到的数据
+			return;
+		}
+		
 		if (USART_GetITStatus(&huart, USART_IT_RXNE) != RESET) {
-			int data = USART_ReceiveData(&huart); //(USART1->DR);	//读取接收到的数据
+			USART_ClearITPendingBit(&huart, USART_IT_RXNE);
+			int data = USART_ReceiveData(&huart);//读取接收到的数据
 
 			if (Thread_rcv) {
 				osThreadFlagsSet(Thread_rcv, WAIT_RX);
@@ -152,7 +163,7 @@ struct STM_UART_INFO : public UART_INFO {
 			return;
 		}
 
-		if (USART_GetITStatus(&huart, USART_IT_TXE) == SET) {
+		if (USART_GetITStatus(&huart, USART_IT_TXE) != RESET) {
 			if ((txpoint < txmax) && (txbuff) && txenable) {
 				USART_SendData(&huart, txbuff[txpoint++]);
 				if (phandl)
@@ -162,13 +173,11 @@ struct STM_UART_INFO : public UART_INFO {
 				USART_ITConfig(&huart, USART_IT_TXE, DISABLE);
 				if (phandl)
 					phandl->trig_tx_cpl();
+				if (Thread_snd_end) {
+					osThreadFlagsSet(Thread_snd_end, WAIT_TX_END);
+				}
 			}
-		}
-
-		if (USART_GetFlagStatus(&huart, USART_FLAG_ORE) == SET) //清除溢出错误
-		{
-			USART_ClearFlag(&huart, USART_FLAG_ORE);
-			int Res = USART_ReceiveData(&huart);
+			return;
 		}
 	}
 };

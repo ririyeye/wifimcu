@@ -16,14 +16,16 @@ void cc3200_main(void *argument);
 
 void init_cc3200(void)
 {
-	static osThreadAttr_t thread1_attr;
+	osThreadAttr_t thread1_attr;
+	memset(&thread1_attr, 0, sizeof(osThreadAttr_t));
 	thread1_attr.stack_mem = &thread_main_stk_1[0];
 	thread1_attr.stack_size = sizeof(thread_main_stk_1);
+	thread1_attr.priority = osPriorityHigh1;
 	osThreadId_t ost = osThreadNew(&cc3200_main, NULL, &thread1_attr);
 }
 
-static unsigned char txbuff[1024];
-static unsigned char rxbuff[1024];
+static unsigned char txbuff[1100];
+static unsigned char rxbuff[1100];
 
 void cc3200_gpio_ctrl_init(void)
 {
@@ -547,19 +549,12 @@ void cc3200_main(void *argument)
 					if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
 					    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(),
 								       &dat)) {
-						if (0 == JD_Communication_data(dat.datestart,
-									       dat.datelen, &dat)) {
-							mk_REC_DATA(dat.datestart, dat.datelen,
-								    &fdata);
+						mk_REC_DATA(dat.datestart, dat.datelen, &fdata);
 
-							if (fdata.frame_index ==
-							    pbuffer->fd.frame_index) {
-								pbuffer->flag = 0;
-							}
+						if (fdata.frame_index == pbuffer->fd.frame_index) {
+							pbuffer->flag = 0;
 						}
 					}
-				} else {
-					break;
 				}
 			}
 
@@ -630,7 +625,7 @@ void cc3200_main(void *argument)
 					}
 				}
 			}
-			osDelay(100);
+			osDelay(1);
 		}
 	}
 }

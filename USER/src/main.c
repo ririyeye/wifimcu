@@ -29,7 +29,7 @@ void app_main(void *argument)
 
 int main(void)
 {
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
 	uart1_init(115200);
 	uart2_init(115200);

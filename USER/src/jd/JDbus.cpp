@@ -14,14 +14,16 @@ void JD_main(void *argument);
 
 void init_JD(void)
 {
-	static osThreadAttr_t thread1_attr;
+	osThreadAttr_t thread1_attr;
+	memset(&thread1_attr, 0, sizeof(osThreadAttr_t));
 	thread1_attr.stack_mem = &thread_main_stk_1[0];
 	thread1_attr.stack_size = sizeof(thread_main_stk_1);
+	thread1_attr.priority = osPriorityHigh2;
 	osThreadId_t ost = osThreadNew(&JD_main, NULL, &thread1_attr);
 }
 
-static unsigned char jd_txbuff[1024];
-static unsigned char jd_rxbuff[1024];
+static unsigned char jd_txbuff[1100];
+static unsigned char jd_rxbuff[1100];
 
 static unsigned int crc_make(unsigned char *ptr, int len, unsigned int firstcrc)
 {
@@ -129,8 +131,6 @@ void sendREC(UART_INFO *psta, FRAME_DATA *rec)
 	if (rec->framedestroy) {
 		rec->framedestroy(rec, rec->destorydat);
 	}
-
-	psta->wait_send_end();
 	psta->send(jd_txbuff, rec->len);
 	psta->wait_send_end();
 }

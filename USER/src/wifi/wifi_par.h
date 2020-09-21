@@ -75,7 +75,7 @@ typedef enum {
 	AUTO_BUFFER_END_BUFFER = 2,
 } AUTO_BUFFER_STATUS;
 
-#define BUFFER_MAX_INDEX (1)
+#define BUFFER_MAX_INDEX (5)
 typedef struct {
 	unsigned char WIFI_Error_retry_Cnt; //异常重试计数
 

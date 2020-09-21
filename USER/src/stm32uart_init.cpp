@@ -34,7 +34,7 @@ int uart5_init(unsigned int bound)
 
 	NVIC_InitStructure.NVIC_IRQChannel = UART5_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; //抢占优先级3
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3; //子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 5; //子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure); //根据指定的参数初始化VIC寄存器
 
@@ -94,7 +94,7 @@ int uart4_init(unsigned int bound)
 
 	NVIC_InitStructure.NVIC_IRQChannel = UART4_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; //抢占优先级3
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3; //子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4; //子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure); //根据指定的参数初始化VIC寄存器
 
@@ -208,7 +208,7 @@ int uart2_init(unsigned int bound)
 	//Usart2 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; //抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3; //子优先级0
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2; //子优先级0
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure); //根据指定的参数初始化VIC寄存器
 
@@ -255,7 +255,7 @@ int uart1_init(unsigned int bound)
 	//Usart1 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; //抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3; //子优先级0
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1; //子优先级0
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure); //根据指定的参数初始化VIC寄存器
 
