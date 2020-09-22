@@ -39,13 +39,15 @@ void timupdate_init(void)
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;//增计数模式
 	TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
 	
+	TIM_ARRPreloadConfig(TIM4, ENABLE);
+
 	TIM_ITConfig(TIM4,TIM_IT_Update,ENABLE); //允许定时器6更新中断
 	/* TIM enable counter */
 	TIM_Cmd(TIM4, ENABLE);
 	/* Enable the TIM1 Capture Compare Interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 4;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }

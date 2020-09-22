@@ -10,7 +10,7 @@ template <typename T, size_t N> inline size_t CountOf(T (&arr)[N])
 	return N;
 }
 
-static uint64_t thread_main_stk_1[64];
+static uint64_t thread_cc3200_stk[64];
 
 void cc3200_main(void *argument);
 
@@ -18,8 +18,8 @@ void init_cc3200(void)
 {
 	osThreadAttr_t thread1_attr;
 	memset(&thread1_attr, 0, sizeof(osThreadAttr_t));
-	thread1_attr.stack_mem = &thread_main_stk_1[0];
-	thread1_attr.stack_size = sizeof(thread_main_stk_1);
+	thread1_attr.stack_mem = &thread_cc3200_stk[0];
+	thread1_attr.stack_size = sizeof(thread_cc3200_stk);
 	thread1_attr.priority = osPriorityHigh1;
 	osThreadId_t ost = osThreadNew(&cc3200_main, NULL, &thread1_attr);
 }

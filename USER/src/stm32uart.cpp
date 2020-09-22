@@ -60,28 +60,39 @@ struct STM_UART_INFO : public UART_INFO {
 		return -1;
 	}
 
+	int _wait_rece(unsigned int headtick, unsigned int tailtick)
+	{
+		uint32_t ret = 0;
+
+		uint32_t start_tick = osKernelGetTickCount();
+		uint32_t end_tick = start_tick + headtick;
+
+		do {
+			ret = osThreadFlagsWait(WAIT_RX, 0, end_tick - osKernelGetTickCount());
+
+			if (ret > 0xffffff00) {
+				return -ret;
+			}
+		} while (0 == (ret & WAIT_RX));
+
+		//等待接受完成
+		do {
+			ret = osThreadFlagsWait(WAIT_RX, 0, tailtick);
+		} while (ret & WAIT_RX);
+		ret = 0;
+
+		return ret;
+	}
+
 	virtual int wait_rece(unsigned int headtick, unsigned int tailtick) final
 	{
 		if (!rxenable)
 			return -1;
 
 		Thread_rcv = osThreadGetId();
-
-		uint32_t ret = osThreadFlagsWait(WAIT_RX, 0, headtick);
-
-		if (ret == osFlagsErrorTimeout) {
-			return -2;
-		}
-
-		if (ret > 0xffff0000) {
-			ret = ret > 0 ? -ret : ret;
-		} else if (ret == WAIT_RX) {
-			do {
-				ret = osThreadFlagsWait(WAIT_RX, 0, tailtick);
-			} while (ret == WAIT_RX); //等待接受完成
-			ret = 0;
-		}
+		int ret = _wait_rece(headtick, tailtick);
 		stopRX();
+		Thread_rcv = nullptr;
 		return ret;
 	}
 
@@ -135,16 +146,17 @@ struct STM_UART_INFO : public UART_INFO {
 
 	void usart_handle()
 	{
-		if (USART_GetFlagStatus(&huart, USART_FLAG_ORE) != RESET) //清除溢出错误
-		{
+		if (USART_GetFlagStatus(&huart, USART_FLAG_ORE) != RESET) {
+			//清除溢出错误
 			USART_ClearFlag(&huart, USART_FLAG_ORE);
-			int data = USART_ReceiveData(&huart);//读取接收到的数据
+			USART_ReceiveData(&huart);
 			return;
 		}
-		
+
 		if (USART_GetITStatus(&huart, USART_IT_RXNE) != RESET) {
 			USART_ClearITPendingBit(&huart, USART_IT_RXNE);
-			int data = USART_ReceiveData(&huart);//读取接收到的数据
+			//读取接收到的数据
+			int data = USART_ReceiveData(&huart); 
 
 			if (Thread_rcv) {
 				osThreadFlagsSet(Thread_rcv, WAIT_RX);
