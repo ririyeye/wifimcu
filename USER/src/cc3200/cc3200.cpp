@@ -340,10 +340,22 @@ int exchangeTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd)
 {
 	mkSndBuf(txbuff, pfd, 0);
 	pwifi->send(txbuff, pfd->len);
+	pwifi->wait_send_end();
 	pwifi->rece(rxbuff, sizeof(rxbuff));
 	pwifi->wait_rece(1000, 2);
 
 	return pwifi->GetRxNum() > 0 ? 0 : -1;
+}
+
+int downloadlargepack(UART_INFO *pwifi, FRAME_DATA *pfd)
+{
+	mkSndBuf(txbuff, pfd, 0);
+	pwifi->send(txbuff, pfd->len);
+	pwifi->wait_send_end();
+	pwifi->rece(rxbuff, sizeof(rxbuff));
+	pwifi->wait_rece(1000, 30);
+
+	return pwifi->GetRxNum() > 0 ? pwifi->GetRxNum() : -1;
 }
 
 int SendTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd)
@@ -593,9 +605,10 @@ void cc3200_main(void *argument)
 							 pesp->auto_bufferring_index,
 							 (unsigned char *)pesp->dummyDownloadbuffer,
 							 pesp->dummyDonwloadlen);
-					if (0 == exchangeTCPdatOnce(pwifi, &fdata) &&
-					    0 == JD_Communication_data(rxbuff, pwifi->GetRxNum(),
-								       &dat)) {
+
+					int reclen = downloadlargepack(pwifi, &fdata);
+					if (reclen > 0 &&
+					    0 == JD_Communication_data(rxbuff, reclen, &dat)) {
 						//检测到JD返回帧
 						failtim = 0;
 						mk_REC_DATA(dat.datestart, dat.datelen, &fdata);

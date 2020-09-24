@@ -68,10 +68,10 @@ struct STM_UART_INFO : public UART_INFO {
 		uint32_t end_tick = start_tick + headtick;
 
 		do {
-			ret = osThreadFlagsWait(WAIT_RX, 0, end_tick - osKernelGetTickCount());
+			ret = osThreadFlagsWait(WAIT_RX, osFlagsWaitAny, end_tick - osKernelGetTickCount());
 
 			if (ret > 0xffffff00) {
-				return -ret;
+				return *(int32_t * )&ret;
 			}
 		} while (0 == (ret & WAIT_RX));
 
@@ -156,16 +156,16 @@ struct STM_UART_INFO : public UART_INFO {
 		if (USART_GetITStatus(&huart, USART_IT_RXNE) != RESET) {
 			USART_ClearITPendingBit(&huart, USART_IT_RXNE);
 			//读取接收到的数据
-			int data = USART_ReceiveData(&huart); 
-
-			if (Thread_rcv) {
-				osThreadFlagsSet(Thread_rcv, WAIT_RX);
-			}
+			int data = USART_ReceiveData(&huart);
 
 			if ((rxpoint < rxmax) && (rxbuff) && rxenable) {
 				rxbuff[rxpoint++] = data;
 				if (phandl)
 					phandl->trig_rx();
+
+				if (Thread_rcv) {
+					osThreadFlagsSet(Thread_rcv, WAIT_RX);
+				}
 			} else {
 				rxenable = 0;
 				USART_ITConfig(&huart, USART_IT_RXNE, ENABLE);
