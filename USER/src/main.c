@@ -13,15 +13,51 @@ int uart1_init(unsigned int bound);
 int uart2_init(unsigned int bound);
 int uart3_init(unsigned int bound);
 
-
 void init_JD(void);
+void work_led_init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	RCC_APB1PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); //开启U2串口时钟
+
+	//com io
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	//live io
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	//GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
+
+void set_live_led(int sta)
+{
+	if (sta) {
+		GPIO_WriteBit(GPIOA, GPIO_Pin_8, Bit_RESET);
+	} else {
+		GPIO_WriteBit(GPIOA, GPIO_Pin_8, Bit_SET);
+	}
+}
+
+void set_com_led(int sta)
+{
+	if (sta) {
+		GPIO_WriteBit(GPIOA, GPIO_Pin_7, Bit_RESET);
+	} else {
+		GPIO_WriteBit(GPIOA, GPIO_Pin_7, Bit_SET);
+	}
+}
+
 
 void app_main(void *argument)
 {
 	init_cc3200();
 	init_JD();
 	timupdate_init();
-
+	work_led_init();
+	set_live_led(0);
 	while (true) {
 		osDelay(1000);
 	}

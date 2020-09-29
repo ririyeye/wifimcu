@@ -368,6 +368,9 @@ int SendTCPdatOnce(UART_INFO *pwifi, FRAME_DATA *pfd)
 	return 0;
 }
 
+void set_live_led(int sta);
+void set_com_led(int sta);
+
 void mk_REC_DATA(unsigned char *data, int len, FRAME_DATA *rec)
 {
 	if (!rec) {
@@ -405,6 +408,7 @@ void cc3200_main(void *argument)
 		do {
 			connectindex = chkNeedConnect(pesp);
 			osDelay(100);
+			set_live_led(0);
 		} while (0 > connectindex);
 		cc3200_pwr(1);
 
@@ -639,6 +643,14 @@ void cc3200_main(void *argument)
 				}
 			}
 			osDelay(1);
+			if (chkNeedConnect(pesp) < 0) {
+				break;
+			}
+			if (osKernelGetTickCount() / 1000 % 2) {
+				set_com_led(1);
+			} else {
+				set_com_led(0);
+			}
 		}
 	}
 }
