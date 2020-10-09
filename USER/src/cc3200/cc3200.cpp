@@ -150,9 +150,13 @@ int set_mod_sta(UART_INFO *info)
 int set_fix_ip_port(UART_INFO *info, const char *staip, const char *mask, const char *gatewayip)
 {
 	int snlen = 0;
+#if 0
 	snlen = sprintf((char *)txbuff, "AT+STAIP=STATIC,%s,%s,%s,%s\r\n", staip, mask, gatewayip,
 			"223.5.5.5");
-
+#else
+	snlen = sprintf((char *)txbuff, "AT+STAIP=STATIC,%s,%s,%s,%s\r\n", staip, mask, "192.168.98.1",
+			"223.5.5.5");
+#endif
 	for (size_t i = 0; i < 10; i++) {
 		info->send((char *)txbuff, snlen);
 		info->rece(rxbuff, CountOf(rxbuff));

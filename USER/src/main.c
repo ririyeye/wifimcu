@@ -35,21 +35,20 @@ void work_led_init(void)
 void set_live_led(int sta)
 {
 	if (sta) {
-		GPIO_WriteBit(GPIOA, GPIO_Pin_8, Bit_RESET);
-	} else {
 		GPIO_WriteBit(GPIOA, GPIO_Pin_8, Bit_SET);
+	} else {
+		GPIO_WriteBit(GPIOA, GPIO_Pin_8, Bit_RESET);
 	}
 }
 
 void set_com_led(int sta)
 {
 	if (sta) {
-		GPIO_WriteBit(GPIOA, GPIO_Pin_7, Bit_RESET);
-	} else {
 		GPIO_WriteBit(GPIOA, GPIO_Pin_7, Bit_SET);
+	} else {
+		GPIO_WriteBit(GPIOA, GPIO_Pin_7, Bit_RESET);
 	}
 }
-
 
 void app_main(void *argument)
 {
