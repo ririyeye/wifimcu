@@ -3,9 +3,6 @@
 #include "cmsis_os2.h"
 #include "myuart.h"
 #include <string.h>
-#include <sbwt.h>
-#include "DMT.h"
-#include "ebyte_lora.h"
 #include "cc3200/cc3200.h"
 #include "wifi/wifi_par.h"
 
