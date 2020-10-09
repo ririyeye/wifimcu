@@ -180,6 +180,8 @@ int download_pro(FRAME_DATA * rec)
 			rec->data = pesp->buffer[0].dat;
 			//完成标志
 			rec->frame_index = FRAME_SINGLE;
+		} else {
+			rec->frame_index = FRAME_NOT_READY;
 		}
 		pesp->workStatus = STA_NULL;
 		rec->framedestroy = unflgBuffer;
