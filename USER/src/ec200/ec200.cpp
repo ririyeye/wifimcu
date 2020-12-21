@@ -191,6 +191,21 @@ int Connect4G(UART_INFO *pec200, unsigned char ips[])
 	return -8;
 }
 
+int getUPD_client_sock(UART_INFO *info, const char *server, int remote_port, int local_port)
+{
+	//AT+QIOPEN=1,2,"UDP","serverip",remoteport,localport,0
+	char cmd[64];
+
+	int snlen = snprintf(cmd, 64, "AT+QIOPEN=1,2,\"UDP\",\"%s\",%d,%d,0\r\n", server,
+			     remote_port, local_port);
+
+	info->send(cmd, snlen);
+	info->rece(rxbuff, CountOf(rxbuff));
+	info->wait_rece(200, DEFAUTL_ACK_TIM);
+
+	return -1;
+}
+
 unsigned char ips[4];
 void ec200_main(void *argument)
 {
