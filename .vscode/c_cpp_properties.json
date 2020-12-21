@@ -3,13 +3,10 @@
         {
             "name": "xinchen",
             "includePath": [
-                "e:\\f767\\app\\CM3",
-                "e:\\f767\\app\\FWLIB\\inc",
-                "e:\\f767\\app\\USER\\src",
-                "E:\\Keil_v5\\ARM\\ARMCC\\include",
-                "E:\\Keil_v5\\ARM\\ARMCC\\include\\rw",
-                "e:\\f767\\app\\FWLIB\\src",
-                "E:\\Keil_v5\\ARM\\PACK\\ARM\\CMSIS\\5.6.0\\CMSIS\\RTOS2\\Include"
+                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\CM3",
+                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\FWLIB\\inc",
+                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\USER\\src",
+                "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\Include"
             ],
             "defines": [
                 "STM32F10X_MD",

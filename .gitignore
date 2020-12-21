@@ -1,5 +1,5 @@
 OBJ/
-USER/startup_stm32f10x_md.lst
+USER/*.lst
 *.map
 *.uvopt
 *.uvoptx
