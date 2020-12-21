@@ -6,7 +6,8 @@
                 "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\CM3",
                 "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\FWLIB\\inc",
                 "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\USER\\src",
-                "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\Include"
+                "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\Include",
+                "D:\\keil\\ARM\\ARMCC\\include"
             ],
             "defines": [
                 "STM32F10X_MD",
