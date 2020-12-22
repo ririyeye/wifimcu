@@ -272,6 +272,33 @@ int ec200_udpsend(UART_INFO *info, int sockID, char *data, int len)
 	return -1;
 }
 
+int ec200_udprecv(UART_INFO *info, int sockID, unsigned char *data, int maxlen)
+{
+	int snlen = snprintf((char *)txbuff, 1024, "AT+QIRD=%d,%d\r\n", sockID, maxlen);
+	info->send(txbuff, snlen);
+	info->rece(rxbuff, CountOf(rxbuff));
+	info->wait_rece(200, DEFAUTL_ACK_TIM);
+
+	int rxnum = info->GetRxNum();
+	char *pos = strstr((char *)rxbuff, "+QIRD:");
+
+	if (rxnum && pos) {
+		int getlen = -1;
+		int sclen = sscanf(pos, "+QIRD: %d", &getlen);
+		if ((1 == sclen) && (getlen > 0)) {
+			char *datpos = strstr(pos, "\r\n");
+			if (datpos && (datpos - pos < 11)) {
+				if (0 == memcmp("\r\nOK\r\n", datpos + getlen + 4, 6)) {
+					memcpy(data, datpos + 2, getlen);
+					return getlen;
+				}
+			}
+		}
+	}
+	return -1;
+}
+
+unsigned char udpt[1024];
 void ec200_main(void *argument)
 {
 	UART_INFO *pec200 = get_myuart(1);
@@ -286,7 +313,8 @@ void ec200_main(void *argument)
 				char buff[12];
 				int len = sprintf(buff, "%d\r\n", num++);
 				ec200_udpsend(pec200, 2, buff, len);
-				// osDelay(1000);
+				ec200_udprecv(pec200, 2, udpt, 500);
+				osDelay(1000);
 			}
 		}
 		osDelay(1000);
