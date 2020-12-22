@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "stm32f10x.h"
 #include <string.h>
+#include "udpclient/udpclient.h"
 
 static uint64_t thread_cc3200_stk[64];
 static unsigned char txbuff[1024];
@@ -73,6 +74,15 @@ int getCREG(UART_INFO *info)
 		return 0;
 	}
 	return -1;
+}
+
+int closeEcho(UART_INFO *info)
+{
+	char *cmd = "AT+QISDE=0\r\n";
+	info->send(cmd, strlen(cmd));
+	info->rece(rxbuff, CountOf(rxbuff));
+	info->wait_rece(200, DEFAUTL_ACK_TIM);
+	return 0;
 }
 
 int getCGATT(UART_INFO *info)
@@ -164,6 +174,7 @@ int setQIACT(UART_INFO *info)
 
 int Connect4G(UART_INFO *pec200, unsigned char ips[])
 {
+	closeEcho(pec200);
 	if (10 > getCSQ(pec200)) {
 		return -1;
 	}
@@ -191,28 +202,92 @@ int Connect4G(UART_INFO *pec200, unsigned char ips[])
 	return -8;
 }
 
-int getUPD_client_sock(UART_INFO *info, const char *server, int remote_port, int local_port)
+int getUDP_client_sock(UART_INFO *info, int sockID, const char *server, int remote_port,
+		       int local_port)
 {
-	//AT+QIOPEN=1,2,"UDP","serverip",remoteport,localport,0
-	char cmd[64];
+	int snlen = snprintf((char *)txbuff, 128, "AT+QIOPEN=1,%d,\"UDP\",\"%s\",%d,%d,0\r\n",
+			     sockID, server, remote_port, local_port);
 
-	int snlen = snprintf(cmd, 64, "AT+QIOPEN=1,2,\"UDP\",\"%s\",%d,%d,0\r\n", server,
-			     remote_port, local_port);
-
-	info->send(cmd, snlen);
+	info->send(txbuff, snlen);
 	info->rece(rxbuff, CountOf(rxbuff));
 	info->wait_rece(200, DEFAUTL_ACK_TIM);
 
+	for (int i = 0; i < 10; i++) {
+		info->rece(rxbuff, CountOf(rxbuff));
+		info->wait_rece(200, DEFAUTL_ACK_TIM);
+
+		int rxnum = info->GetRxNum();
+		char *pos = strstr((char *)rxbuff, "+QIOPEN:");
+		if (rxnum && pos) {
+			int recport, sta;
+			if (2 == sscanf(pos, "+QIOPEN:%d,%d", &recport, &sta)) {
+				return 0;
+			}
+		}
+
+		pos = strstr((char *)rxbuff, "FAIL");
+		if (rxnum && pos) {
+			return -1;
+		}
+	}
 	return -1;
 }
 
 unsigned char ips[4];
+
+void ec200_udpsend(UART_INFO *info)
+{
+	UDPFD *p = udpout();
+	if (p) {
+		int datlen = p->txend;
+		unsigned char *headpoint = p->txbuf;
+		int snlen = snprintf((char *)txbuff, 1024, "AT+QISEND=2,%d\r\n", datlen);
+		info->send(txbuff, snlen);
+		info->rece(rxbuff, CountOf(rxbuff));
+		info->wait_rece(200, DEFAUTL_ACK_TIM);
+
+		if (info->GetRxNum() == 1) {
+		}
+	}
+}
+
+int ec200_udpsend(UART_INFO *info, int sockID, char *data, int len)
+{
+	int snlen = snprintf((char *)txbuff, 1024, "AT+QISEND=%d,%d\r\n", sockID, len);
+	info->send(txbuff, snlen);
+	info->rece(rxbuff, CountOf(rxbuff));
+	info->wait_rece(200, DEFAUTL_ACK_TIM);
+
+	int rxnum = info->GetRxNum();
+	char *pos = strstr((char *)rxbuff, ">");
+
+	if (rxnum && pos) {
+		info->send(data, len);
+		info->rece(rxbuff, CountOf(rxbuff));
+		info->wait_rece(200, DEFAUTL_ACK_TIM);
+		rxnum = info->GetRxNum();
+		pos = strstr((char *)rxbuff, "SEND OK");
+		return 0;
+	}
+	return -1;
+}
+
 void ec200_main(void *argument)
 {
 	UART_INFO *pec200 = get_myuart(1);
 
 	while (1) {
 		if (0 == Connect4G(pec200, ips)) {
+			if (0 <= getUDP_client_sock(pec200, 2, "45.63.2.213", 9999, 0)) {
+				continue;
+			}
+			int num = 0;
+			while (1) {
+				char buff[12];
+				int len = sprintf(buff, "%d\r\n", num++);
+				ec200_udpsend(pec200, 2, buff, len);
+				// osDelay(1000);
+			}
 		}
 		osDelay(1000);
 	}

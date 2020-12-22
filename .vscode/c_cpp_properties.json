@@ -3,14 +3,15 @@
         {
             "name": "oray",
             "includePath": [
-                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\CM3",
-                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\FWLIB\\inc",
-                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\USER\\src",
-                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\USER\\RTE\\_TEST",
-                "C:\\Users\\Oray\\Documents\\GitHub\\wifimcu\\USER\\RTE\\CMSIS",
+                "CM3",
+                "FWLIB\\inc",
+                "USER\\src",
+                "USER\\RTE\\_TEST",
+                "USER\\RTE\\CMSIS",
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\Include",
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\RTX\\Source",
                 "D:\\keil\\ARM\\ARMCC\\include",
+                "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\Core\\Include",
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\RTX\\Include"
             ],
             "defines": [
