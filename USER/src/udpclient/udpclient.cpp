@@ -138,7 +138,7 @@ int updwrite(int fd, unsigned char *dat, int len)
 			__disable_irq();
 			int cplen = 0;
 			if (p.txend + len > p.txMax)
-				cplen = p.rxMax - p.rxend;
+				cplen = p.txMax - p.txend;
 			else
 				cplen = len;
 
