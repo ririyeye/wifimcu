@@ -1,15 +1,19 @@
 #ifndef __UDPCLIENT_H____
 #define __UDPCLIENT_H____
 
-int udpopen(const char * addr,int port);
-int udpread(int fd,unsigned char * dat,int len);
-int updwrite(int fd,unsigned char * dat,int maxlen);
-int udpclose(int fd);
+int udpopen_block(const char * addr,int port);
+int udpread(int fd,unsigned char * dat,int maxlen);
+int updwrite(int fd,unsigned char * dat,int len);
+int udpclose_block(int fd);
 
 //upd init
 enum udpstatus {
-	updopen = 0,
+	updconnected = 0,
 	udpclosed = -1,
+	udpnofd = -2,
+	udpoperator_failed = -3,
+
+	udp_par_error = -100,
 };
 
 struct UDPFD {
@@ -17,13 +21,26 @@ struct UDPFD {
 	int connectID;
 	udpstatus nowstatus;
 	udpstatus cmdstatus;
-	unsigned char rxbuf[1024];
-	int rxinit, rxend;
-	unsigned char txbuf[1024];
-	int txinit, txend;
+#define SERVERLEN 32
+	char servername[SERVERLEN];
+	int remoteport;
+#define RXMAX 1024
+	unsigned char rxbuf[RXMAX];
+	int rxend;
+	int rxMax;
+#define TXMAX 1024
+	unsigned char txbuf[TXMAX];
+	int txend;
+	int txMax;
 };
 
 void udpinit(void);
 UDPFD * udpout(void);
 int udpin(int fd ,unsigned char * dat, int len);
+
+
+typedef int UDPFDitr;
+void UDPFDitr_init(UDPFDitr *itr);
+int UDPFDitr_getNext(UDPFDitr *itr);
+UDPFD *UDPFD_Get(UDPFDitr *itr);
 #endif

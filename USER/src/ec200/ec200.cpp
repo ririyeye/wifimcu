@@ -298,17 +298,69 @@ int ec200_udp_close(UART_INFO *info, int sockID)
 }
 static unsigned char ips[4];
 
-void ec200_udpsend_seq(UART_INFO *info)
+int ec200_udpsend_seq(UART_INFO *info)
 {
 	UDPFD *p = udpout();
-
+	int ret = 0;
 	while (p) {
 		int ret = ec200_udpsend(info, p->connectID, p->txbuf, p->txend);
 		if (0 == ret) {
 			p->txend = 0;
+			ret++;
 		}
 		p = udpout();
 	}
+	return ret;
+}
+
+int ec200_poll_read(UART_INFO *info)
+{
+	UDPFDitr itr;
+	UDPFDitr_init(&itr);
+	UDPFD *fd = UDPFD_Get(&itr);
+	int ret = 0;
+	while (fd) {
+		if (fd->nowstatus == updconnected) {
+			int len = ec200_udprecv(info, fd->connectID, &fd->rxbuf[fd->rxend],
+						fd->rxMax - fd->rxend);
+			if (len > 0) {
+				fd->rxend += len;
+				ret++;
+			}
+		}
+
+		UDPFDitr_getNext(&itr);
+		fd = UDPFD_Get(&itr);
+	}
+	return ret;
+}
+
+int ec200_cmd_ctrl(UART_INFO *info)
+{
+	UDPFDitr itr;
+	UDPFDitr_init(&itr);
+	UDPFD *fd = UDPFD_Get(&itr);
+	int ret = 0;
+	while (fd) {
+		if (fd->nowstatus == fd->cmdstatus) {
+			if (fd->cmdstatus == updconnected) {
+				int sta = getUDP_client_sock(info, fd->connectID, fd->servername,
+							     fd->remoteport, 0);
+
+				if (sta) {
+					ret++;
+				}
+			}
+		} else {
+			int sta = ec200_udp_close(info, fd->connectID);
+			if (sta) {
+				ret++;
+			}
+		}
+		UDPFDitr_getNext(&itr);
+		fd = UDPFD_Get(&itr);
+	}
+	return ret;
 }
 
 void ec200_main(void *argument)
@@ -317,7 +369,12 @@ void ec200_main(void *argument)
 
 	while (1) {
 		if (0 == Connect4G(pec200, ips)) {
-			ec200_udpsend_seq(pec200);
+			int cn = ec200_cmd_ctrl(pec200);
+			int sn = ec200_udpsend_seq(pec200);
+			int rd = ec200_poll_read(pec200);
+			if (sn <= 0 && rd <= 0 && cn <=0) {
+				osDelay(1);
+			}
 		}
 	}
 }
