@@ -12,6 +12,8 @@ enum udpstatus {
 	udpclosed = -1,
 	udpnofd = -2,
 	udpoperator_failed = -3,
+	udp_sock_error = -4,
+	udp_send_error = -5,
 
 	udp_par_error = -100,
 };

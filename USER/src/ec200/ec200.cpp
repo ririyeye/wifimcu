@@ -244,8 +244,17 @@ int ec200_udpsend(UART_INFO *info, int sockID, unsigned char *data, int len)
 		info->rece(rxbuff, CountOf(rxbuff));
 		info->wait_rece(200, DEFAUTL_ACK_TIM);
 		rxnum = info->GetRxNum();
-		pos = strstr((char *)rxbuff, "SEND OK");
-		return len;
+		if (strstr((char *)rxbuff, "SEND OK")) {
+			return len;
+		}
+
+		if (strstr((char *)rxbuff, "SEND FAIL")) {
+			return udp_send_error;
+		}
+
+		if (strstr((char *)rxbuff, "ERROR")) {
+			return udp_sock_error;
+		}
 	}
 	return -1;
 }
