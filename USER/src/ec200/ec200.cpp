@@ -245,12 +245,12 @@ int ec200_udpsend(UART_INFO *info, int sockID, unsigned char *data, int len)
 		info->wait_rece(200, DEFAUTL_ACK_TIM);
 		rxnum = info->GetRxNum();
 		pos = strstr((char *)rxbuff, "SEND OK");
-		return 0;
+		return len;
 	}
 	return -1;
 }
 
-int ec200_udprecv(UART_INFO *info, int sockID, unsigned char *data, int maxlen)
+int ec200_udprecv(UART_INFO *info, int sockID, unsigned char **data, int maxlen)
 {
 	int snlen = snprintf((char *)txbuff, 1024, "AT+QIRD=%d,%d\r\n", sockID, maxlen);
 	info->send(txbuff, snlen);
@@ -267,7 +267,8 @@ int ec200_udprecv(UART_INFO *info, int sockID, unsigned char *data, int maxlen)
 			char *datpos = strstr(pos, "\r\n");
 			if (datpos && (datpos - pos < 11)) {
 				if (0 == memcmp("\r\nOK\r\n", datpos + getlen + 4, 6)) {
-					memcpy(data, datpos + 2, getlen);
+					if (data)
+						*data = (unsigned char *)&datpos[2];
 					return getlen;
 				}
 			}
@@ -303,10 +304,17 @@ int ec200_udpsend_seq(UART_INFO *info)
 	UDPFD *p = udpout();
 	int ret = 0;
 	while (p) {
-		int ret = ec200_udpsend(info, p->connectID, p->txbuf, p->txend);
-		if (0 == ret) {
-			p->txend = 0;
+		int sndlen = ec200_udpsend(info, p->connectID, p->txbuf, p->txend);
+		if (0 < sndlen) {
+			__disable_irq();
+			if (p->txend <= sndlen) {
+				p->txend = 0;
+			} else {
+				memmove(p->txbuf, &p->txbuf[sndlen], p->txend - sndlen);
+				p->txend -= sndlen;
+			}
 			ret++;
+			__enable_irq();
 		}
 		p = udpout();
 	}
@@ -321,14 +329,17 @@ int ec200_poll_read(UART_INFO *info)
 	int ret = 0;
 	while (fd) {
 		if (fd->nowstatus == updconnected) {
-			int len = ec200_udprecv(info, fd->connectID, &fd->rxbuf[fd->rxend],
+			unsigned char *rtdatapos;
+			int len = ec200_udprecv(info, fd->connectID, &rtdatapos,
 						fd->rxMax - fd->rxend);
 			if (len > 0) {
+				__disable_irq();
+				memcpy(&fd->rxbuf[fd->rxend], rtdatapos, len);
 				fd->rxend += len;
 				ret++;
+				__enable_irq();
 			}
 		}
-
 		UDPFDitr_getNext(&itr);
 		fd = UDPFD_Get(&itr);
 	}
@@ -372,7 +383,7 @@ void ec200_main(void *argument)
 			int cn = ec200_cmd_ctrl(pec200);
 			int sn = ec200_udpsend_seq(pec200);
 			int rd = ec200_poll_read(pec200);
-			if (sn <= 0 && rd <= 0 && cn <=0) {
+			if (sn <= 0 && rd <= 0 && cn <= 0) {
 				osDelay(1);
 			}
 		}

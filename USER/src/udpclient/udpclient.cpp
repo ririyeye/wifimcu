@@ -54,7 +54,7 @@ int udpclose_block(int fd)
 		if (p.nowstatus == udpclosed) {
 			p.cmdstatus = udpclosed;
 			return 0;
-		}else{
+		} else {
 			p.cmdstatus = udpclosed;
 			for (int i = 0; i < 1000; i++) {
 				if (p.nowstatus == udpclosed)
@@ -62,12 +62,10 @@ int udpclose_block(int fd)
 				osDelay(1);
 			}
 			return udpoperator_failed;
-		}		
+		}
 	}
 	return udpnofd;
 }
-
-
 
 int udpread(int fd, unsigned char *dat, int maxlen)
 {
@@ -81,17 +79,25 @@ int udpread(int fd, unsigned char *dat, int maxlen)
 		if (p.fd == fd) {
 			if (p.nowstatus == updconnected) {
 				if (p.rxend) {
+					int retnum = 0;
+					__disable_irq();
 					if (maxlen >= p.rxend) {
-						p.rxend = 0;
 						memcpy(dat, p.rxbuf, p.rxend);
-						return p.rxend;
-					}else{
-						
+						retnum = p.rxend;
+						p.rxend = 0;
+					} else {
+						memcmp(dat, p.rxbuf, maxlen);
+						memmove(p.rxbuf, &p.rxbuf[maxlen],
+							p.rxend - maxlen);
+						retnum = maxlen;
+						p.rxend = p.rxend - maxlen;
 					}
+					__enable_irq();
+					return retnum;
 				}
-			}else{
+			} else {
 				return udpclosed;
-			}			
+			}
 		}
 	}
 	return udpnofd;
@@ -106,8 +112,18 @@ int updwrite(int fd, unsigned char *dat, int len)
 	int sz = sizeof(udpfdgrp) / sizeof(UDPFD);
 	for (int i = 0; i < sz; i++) {
 		auto &p = udpfdgrp[i];
-		if (p.nowstatus == udpclosed) {
-			p.cmdstatus = updconnected;
+		if (p.nowstatus == updconnected) {
+			__disable_irq();
+			int cplen = 0;
+			if (p.txend + len > p.txMax)
+				cplen = p.rxMax - p.rxend;
+			else
+				cplen = len;
+
+			memcpy(&p.txbuf[p.txend], dat, cplen);
+			p.txend += cplen;
+			__enable_irq();
+			return cplen;
 		}
 	}
 	return udpnofd;
