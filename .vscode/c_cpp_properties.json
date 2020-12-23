@@ -12,6 +12,7 @@
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\RTX\\Source",
                 "D:\\keil\\ARM\\ARMCC\\include",
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\Core\\Include",
+                "D:\\keil\\ARM\\PACK\\ARM\\mbedTLS\\1.6.1\\include",
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\RTX\\Include"
             ],
             "defines": [

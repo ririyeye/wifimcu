@@ -151,8 +151,6 @@ int setQIACT(UART_INFO *info)
 {
 	char *cmd = "AT+QIACT=1\r\n";
 	info->send(cmd, strlen(cmd));
-	info->rece(rxbuff, CountOf(rxbuff));
-	info->wait_rece(200, DEFAUTL_ACK_TIM);
 
 	for (int i = 0; i < 10; i++) {
 		info->rece(rxbuff, CountOf(rxbuff));
@@ -209,8 +207,6 @@ int getUDP_client_sock(UART_INFO *info, int sockID, const char *server, int remo
 			     sockID, server, remote_port, local_port);
 
 	info->send(txbuff, snlen);
-	info->rece(rxbuff, CountOf(rxbuff));
-	info->wait_rece(200, DEFAUTL_ACK_TIM);
 
 	for (int i = 0; i < 10; i++) {
 		info->rece(rxbuff, CountOf(rxbuff));
@@ -233,25 +229,7 @@ int getUDP_client_sock(UART_INFO *info, int sockID, const char *server, int remo
 	return -1;
 }
 
-unsigned char ips[4];
-
-void ec200_udpsend(UART_INFO *info)
-{
-	UDPFD *p = udpout();
-	if (p) {
-		int datlen = p->txend;
-		unsigned char *headpoint = p->txbuf;
-		int snlen = snprintf((char *)txbuff, 1024, "AT+QISEND=2,%d\r\n", datlen);
-		info->send(txbuff, snlen);
-		info->rece(rxbuff, CountOf(rxbuff));
-		info->wait_rece(200, DEFAUTL_ACK_TIM);
-
-		if (info->GetRxNum() == 1) {
-		}
-	}
-}
-
-int ec200_udpsend(UART_INFO *info, int sockID, char *data, int len)
+int ec200_udpsend(UART_INFO *info, int sockID, unsigned char *data, int len)
 {
 	int snlen = snprintf((char *)txbuff, 1024, "AT+QISEND=%d,%d\r\n", sockID, len);
 	info->send(txbuff, snlen);
@@ -298,25 +276,48 @@ int ec200_udprecv(UART_INFO *info, int sockID, unsigned char *data, int maxlen)
 	return -1;
 }
 
-unsigned char udpt[1024];
+int ec200_udp_close(UART_INFO *info, int sockID)
+{
+	int snlen = snprintf((char *)txbuff, 1024, "AT+QICLOSE=%d\r\n", sockID);
+	info->send(txbuff, snlen);
+
+	for (int i = 0; i < 5; i++) {
+		info->rece(rxbuff, CountOf(rxbuff));
+		info->wait_rece(200, DEFAUTL_ACK_TIM);
+		int rxnum = info->GetRxNum();
+		char *pos = strstr((char *)rxbuff, "OK");
+		if (pos) {
+			return 0;
+		}
+		pos = strstr((char *)rxbuff, "ERROR");
+		if (pos) {
+			return -1;
+		}
+	}
+	return -1;
+}
+static unsigned char ips[4];
+
+void ec200_udpsend_seq(UART_INFO *info)
+{
+	UDPFD *p = udpout();
+
+	while (p) {
+		int ret = ec200_udpsend(info, p->connectID, p->txbuf, p->txend);
+		if (0 == ret) {
+			p->txend = 0;
+		}
+		p = udpout();
+	}
+}
+
 void ec200_main(void *argument)
 {
 	UART_INFO *pec200 = get_myuart(1);
 
 	while (1) {
 		if (0 == Connect4G(pec200, ips)) {
-			if (0 <= getUDP_client_sock(pec200, 2, "45.63.2.213", 9999, 0)) {
-				continue;
-			}
-			int num = 0;
-			while (1) {
-				char buff[12];
-				int len = sprintf(buff, "%d\r\n", num++);
-				ec200_udpsend(pec200, 2, buff, len);
-				ec200_udprecv(pec200, 2, udpt, 500);
-				osDelay(1000);
-			}
+			ec200_udpsend_seq(pec200);
 		}
-		osDelay(1000);
 	}
 }
