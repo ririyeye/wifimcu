@@ -340,8 +340,11 @@ int ec200_poll_read(UART_INFO *info)
 				__enable_irq();
 			}
 		}
-		UDPFDitr_getNext(&itr);
-		fd = UDPFD_Get(&itr);
+		if (0 == UDPFDitr_getNext(&itr)) {
+			fd = UDPFD_Get(&itr);
+		} else {
+			fd = nullptr;
+		}
 	}
 	return ret;
 }
@@ -353,23 +356,27 @@ int ec200_cmd_ctrl(UART_INFO *info)
 	UDPFD *fd = UDPFD_Get(&itr);
 	int ret = 0;
 	while (fd) {
-		if (fd->nowstatus == fd->cmdstatus) {
+		if (fd->nowstatus != fd->cmdstatus) {
 			if (fd->cmdstatus == updconnected) {
 				int sta = getUDP_client_sock(info, fd->connectID, fd->servername,
 							     fd->remoteport, 0);
-
-				if (sta) {
+				if (0 == sta) {
+					udpfd_set(fd, updconnected);
+					ret++;
+				}
+			} else {
+				int sta = ec200_udp_close(info, fd->connectID);
+				if (0 == sta) {
+					udpfd_set(fd, udpclosed);
 					ret++;
 				}
 			}
-		} else {
-			int sta = ec200_udp_close(info, fd->connectID);
-			if (sta) {
-				ret++;
-			}
 		}
-		UDPFDitr_getNext(&itr);
-		fd = UDPFD_Get(&itr);
+		if (0 == UDPFDitr_getNext(&itr)) {
+			fd = UDPFD_Get(&itr);
+		} else {
+			fd = nullptr;
+		}
 	}
 	return ret;
 }
@@ -380,11 +387,14 @@ void ec200_main(void *argument)
 
 	while (1) {
 		if (0 == Connect4G(pec200, ips)) {
-			int cn = ec200_cmd_ctrl(pec200);
-			int sn = ec200_udpsend_seq(pec200);
-			int rd = ec200_poll_read(pec200);
-			if (sn <= 0 && rd <= 0 && cn <= 0) {
-				osDelay(1);
+			//TODO 没有判断ec200 通讯报错需要重连
+			while (1) {
+				int cn = ec200_cmd_ctrl(pec200);
+				int sn = ec200_udpsend_seq(pec200);
+				int rd = ec200_poll_read(pec200);
+				if (sn <= 0 && rd <= 0 && cn <= 0) {
+					osDelay(1);
+				}
 			}
 		}
 	}

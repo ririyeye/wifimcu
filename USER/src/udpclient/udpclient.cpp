@@ -1,7 +1,7 @@
 #include "udpclient/udpclient.h"
 #include "string.h"
 #include "cmsis_os2.h"
-static UDPFD udpfdgrp[2];
+UDPFD udpfdgrp[2];
 
 void udpinit(void)
 {
@@ -18,6 +18,28 @@ void udpinit(void)
 		p.txMax = TXMAX;
 	}
 }
+
+void udpfd_set(UDPFD * fd, int status)
+{
+	if (!fd) {
+		return;
+	}
+
+	if (status == updconnected) {
+		fd->nowstatus = updconnected;
+		fd->cmdstatus = updconnected;
+	} else {
+		fd->nowstatus = udpclosed;
+		fd->cmdstatus = udpclosed;
+	}
+	fd->rxend = 0;
+	fd->txend = 0;
+	fd->rxMax = RXMAX;
+	fd->txMax = TXMAX;
+}
+
+
+
 
 int udpopen_block(const char *addr, int port)
 {
@@ -151,7 +173,7 @@ int UDPFDitr_getNext(UDPFDitr *itr)
 {
 	if (itr)
 		if ((*itr >= 0) && (*itr < sizeof(udpfdgrp) / sizeof(UDPFD) - 1)) {
-			*itr++;
+			*itr = *itr + 1;
 			return 0;
 		}
 

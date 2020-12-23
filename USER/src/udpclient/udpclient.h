@@ -43,4 +43,5 @@ typedef int UDPFDitr;
 void UDPFDitr_init(UDPFDitr *itr);
 int UDPFDitr_getNext(UDPFDitr *itr);
 UDPFD *UDPFD_Get(UDPFDitr *itr);
+void udpfd_set(UDPFD *fd, int status);
 #endif
