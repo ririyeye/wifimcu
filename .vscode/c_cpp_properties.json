@@ -3,7 +3,6 @@
         {
             "name": "oray",
             "includePath": [
-                "CM3",
                 "FWLIB\\inc",
                 "USER\\src",
                 "USER\\RTE\\_TEST",
@@ -13,6 +12,7 @@
                 "D:\\keil\\ARM\\ARMCC\\include",
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\Core\\Include",
                 "D:\\keil\\ARM\\PACK\\ARM\\mbedTLS\\1.6.1\\include",
+                "D:\\keil\\ARM\\PACK\\Keil\\STM32F1xx_DFP\\2.3.0\\Device\\Include",
                 "D:\\keil\\ARM\\PACK\\ARM\\CMSIS\\5.7.0\\CMSIS\\RTOS2\\RTX\\Include"
             ],
             "defines": [

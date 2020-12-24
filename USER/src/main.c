@@ -6,6 +6,8 @@
 #include "ec200/ec200.h"
 #include "client/client.h"
 #include "udpclient/udpclient.h"
+#include "EventRecorder.h"
+
 
 int uart1_init(unsigned int bound);
 int uart2_init(unsigned int bound);
@@ -15,6 +17,9 @@ void init_JD(void);
 
 void app_main(void *argument)
 {
+	EventRecorderInitialize(EventRecordAll, 1U);
+	EventRecorderStart();
+
 	init_ec200_thread();
 
 	testclient();
