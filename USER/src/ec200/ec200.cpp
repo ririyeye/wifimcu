@@ -7,8 +7,9 @@
 #include "udpclient/udpclient.h"
 
 static uint64_t thread_cc3200_stk[64];
-static unsigned char txbuff[1024];
-static unsigned char rxbuff[1024];
+static unsigned char txbuff[128];
+//RXbuff用于接收数据需要稍微大于udp帧缓存
+static unsigned char rxbuff[1200];
 
 template <typename T, size_t N> inline size_t CountOf(T (&arr)[N])
 {
@@ -231,7 +232,7 @@ int getUDP_client_sock(UART_INFO *info, int sockID, const char *server, int remo
 
 int ec200_udpsend(UART_INFO *info, int sockID, unsigned char *data, int len)
 {
-	int snlen = snprintf((char *)txbuff, 1024, "AT+QISEND=%d,%d\r\n", sockID, len);
+	int snlen = snprintf((char *)txbuff, 128, "AT+QISEND=%d,%d\r\n", sockID, len);
 	info->send(txbuff, snlen);
 	info->rece(rxbuff, CountOf(rxbuff));
 	info->wait_rece(200, DEFAUTL_ACK_TIM);
@@ -261,7 +262,7 @@ int ec200_udpsend(UART_INFO *info, int sockID, unsigned char *data, int len)
 
 int ec200_udprecv(UART_INFO *info, int sockID, unsigned char **data, int maxlen)
 {
-	int snlen = snprintf((char *)txbuff, 1024, "AT+QIRD=%d,%d\r\n", sockID, maxlen);
+	int snlen = snprintf((char *)txbuff, 128, "AT+QIRD=%d,%d\r\n", sockID, maxlen);
 	info->send(txbuff, snlen);
 	info->rece(rxbuff, CountOf(rxbuff));
 	info->wait_rece(200, DEFAUTL_ACK_TIM);
@@ -288,7 +289,7 @@ int ec200_udprecv(UART_INFO *info, int sockID, unsigned char **data, int maxlen)
 
 int ec200_udp_close(UART_INFO *info, int sockID)
 {
-	int snlen = snprintf((char *)txbuff, 1024, "AT+QICLOSE=%d\r\n", sockID);
+	int snlen = snprintf((char *)txbuff, 128, "AT+QICLOSE=%d\r\n", sockID);
 	info->send(txbuff, snlen);
 
 	for (int i = 0; i < 5; i++) {

@@ -10,11 +10,23 @@ void testclient(void)
 	while (fd < 0)
 		fd = udpopen_block("45.63.2.213", 9999);
 
-	int num = 0;
+	int num = 100000;
 	char buff[32];
 	while (1) {
-		int len = snprintf(buff, 32, "num=%d\r\n", num++);
-		updwrite(fd, (unsigned char *)buff, len);
-		osDelay(3);
+		int len = snprintf(buff, 32, "asdfghjklnum=%d\r\n", num++);
+		int sndlen = 0;
+		while(1){
+			sndlen = updwrite(fd, (unsigned char *)buff, len);
+
+			len = len - sndlen;
+			if (0 != len) {
+				if (sndlen != 0) {
+					memmove(buff, buff + sndlen, len);
+				}
+				osDelay(1);
+				continue;
+			}
+			break;
+		}
 	}
 }

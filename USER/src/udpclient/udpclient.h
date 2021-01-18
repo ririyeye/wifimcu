@@ -30,7 +30,7 @@ struct UDPFD {
 	unsigned char rxbuf[RXMAX];
 	int rxend;
 	int rxMax;
-#define TXMAX 1024
+#define TXMAX 1500
 	unsigned char txbuf[TXMAX];
 	int txend;
 	int txMax;
