@@ -922,8 +922,8 @@
           <targetInfo name="TEST"/>
         </targetInfos>
       </component>
-      <component Cclass="Security" Cgroup="mbed TLS" Cvendor="ARM" Cversion="2.17.0">
-        <package name="mbedTLS" schemaVersion="1.6" url="http://www.keil.com/pack/" vendor="ARM" version="1.6.1"/>
+      <component Cclass="Security" Cgroup="mbed Crypto" Cvendor="ARM" Cversion="3.0.1">
+        <package name="mbedCrypto" schemaVersion="1.6" url="https://github.com/MDK-Packs/Pack/raw/master/mbedCrypto/" vendor="ARM" version="3.0.1"/>
         <targetInfos>
           <targetInfo name="TEST"/>
         </targetInfos>
@@ -1022,8 +1022,8 @@
       </file>
       <file attr="config" category="header" name="configs\mbedTLS_config.h" version="2.17.0">
         <instance index="0">RTE\Security\mbedTLS_config.h</instance>
-        <component Cclass="Security" Cgroup="mbed TLS" Cvendor="ARM" Cversion="2.17.0"/>
-        <package name="mbedTLS" schemaVersion="1.6" url="http://www.keil.com/pack/" vendor="ARM" version="1.6.1"/>
+        <component Cclass="Security" Cgroup="mbed Crypto" Cvendor="ARM" Cversion="3.0.1"/>
+        <package name="mbedCrypto" schemaVersion="1.6" url="https://github.com/MDK-Packs/Pack/raw/master/mbedCrypto/" vendor="ARM" version="3.0.1"/>
         <targetInfos>
           <targetInfo name="TEST"/>
         </targetInfos>
